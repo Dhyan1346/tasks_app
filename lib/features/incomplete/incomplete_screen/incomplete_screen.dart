@@ -4,18 +4,19 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:todo_tasks/core/widgets/AsyncDataWidget.dart';
 import 'package:todo_tasks/core/widgets/Customtext.dart';
+import 'package:todo_tasks/core/widgets/custom_textfield.dart';
 import 'package:todo_tasks/core/widgets/customappbar.dart';
 import 'package:todo_tasks/core/widgets/showCustomDialog.dart';
 import 'package:todo_tasks/features/home/controller/home_controller.dart';
 import 'package:todo_tasks/features/add/add_controller/add_controller.dart';
 
-class HomeScreen extends ConsumerWidget {
-  const HomeScreen({super.key});
+class InCompleteScreen extends ConsumerWidget {
+  const InCompleteScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: const CustomAppBar(title: "My Tasks"),
+      appBar: const CustomAppBar(title: "Incomplete Tasks"),
       body: Column(
         children: const [
           ShowContainer(),
@@ -30,16 +31,15 @@ class ShowContainer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final taskData = ref.watch(taskStreamProvider);
+    // watch the stream provider that returns only incomplete tasks
+    final taskData = ref.watch(taskinCompleteStreamProvider);
 
     return Expanded(
       child: AsyncDataWidget(
         asyncValue: taskData,
         builder: (data) {
           if (data.isEmpty) {
-            return const Center(
-              child: Text("No tasks found"),
-            );
+            return const Center(child: Text("No incomplete tasks"));
           }
 
           return ListView.builder(
@@ -49,29 +49,35 @@ class ShowContainer extends ConsumerWidget {
               final isSelected = task.isDone;
 
               return Dismissible(
-                key: Key(task.id),
+                key: ValueKey(task.id),
                 direction: DismissDirection.startToEnd,
+                // background: Container(
+                //   color: Colors.red,
+                //   padding: const EdgeInsets.only(left: 20),
+                //   alignment: Alignment.centerLeft,
+                //   child: const Icon(Icons.delete, color: Colors.white, size: 30),
+                // ),
                 onDismissed: (dir) {
                   if (dir == DismissDirection.startToEnd) {
+                    // use read inside callbacks (do not use watch here)
                     ref.read(taskControllerProvider.notifier).removeTask(task);
                   }
                 },
-
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: GestureDetector(
-                    onTap: () {},
-
+                    onTap: () {
+                      // optional tap action
+                    },
                     child: Container(
                       padding: const EdgeInsets.all(12.0),
                       decoration: BoxDecoration(
                         color: Colors.black,
                         borderRadius: BorderRadius.circular(8),
                       ),
-
                       child: Row(
                         children: [
-                          /// LEFT CONTENT
+                          // left column: title, description, priority & date
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -81,23 +87,20 @@ class ShowContainer extends ConsumerWidget {
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
                               ),
-
                               const SizedBox(height: 4),
-
                               CustomText(
                                 text: task.description ?? '',
                                 color: Colors.white,
                                 fontSize: 16,
                               ),
-
                               const SizedBox(height: 8),
-
                               Row(
                                 children: [
-                                  /// Priority Chip
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.red,
                                       borderRadius: BorderRadius.circular(5),
@@ -108,13 +111,12 @@ class ShowContainer extends ConsumerWidget {
                                       fontSize: 14,
                                     ),
                                   ),
-
                                   const SizedBox(width: 16),
-
-                                  /// Date Chip
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.green,
                                       borderRadius: BorderRadius.circular(5),
@@ -143,53 +145,44 @@ class ShowContainer extends ConsumerWidget {
 
                           const Spacer(),
 
-                          /// RIGHT SIDE ICONS
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            spacing: 20,
-
-                            children: [
-                              /// COMPLETE TOGGLE
-                              GestureDetector(
-                                onTap: () {
-                                  ref
-                                      .read(taskControllerProvider.notifier)
-                                      .toggleDone(task);
-                                },
-                                child: Icon(
-                                  isSelected
-                                      ? Icons.check_box
-                                      : Icons.check_box_outline_blank,
-                                  color:
-                                  isSelected ? Colors.green : Colors.grey,
-                                ),
+                          // right column: actions (delete)
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 20,
+                        children: [
+                          // ✔ Checkbox toggle
+                          GestureDetector(
+                            onTap: () {
+                              ref.read(taskControllerProvider.notifier).toggleDone(task);
+                            },
+                            child: Center(
+                              child: Icon(
+                                isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+                                color: isSelected ? Colors.green : Colors.grey,
                               ),
+                            ),
+                          ),
 
+                          // ✔ Delete icon
+                          GestureDetector(
+                            onTap: () {
+                              ref.read(taskControllerProvider.notifier).removeTask(task);
+                            },
+                            child: const Icon(Icons.delete, color: Colors.grey, size: 20),
+                          ),
 
+                          // ✔ Dialog button (fixed)
+                          GestureDetector(
+                            onTap: () {
+                              showIncompleteDialog(context, ref,task);
 
-                              /// DELETE BUTTON
-                              GestureDetector(
-                                onTap: () {
-                                  ref
-                                      .read(taskControllerProvider.notifier)
-                                      .removeTask(task);
-                                },
-                                child: const Icon(
-                                  Icons.delete,
-                                  color: Colors.grey,
-                                  size: 20,
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  showIncompleteDialog(context, ref,task);
-
-                                },
-                                child: const Icon(FontAwesomeIcons.penToSquare, color: Colors.grey, size: 20),
-                              ),
-                            ],
+                            },
+                            child: const Icon(FontAwesomeIcons.penToSquare, color: Colors.grey, size: 20),
                           ),
                         ],
+                      ),
+
+                      ],
                       ),
                     ),
                   ),
@@ -203,7 +196,7 @@ class ShowContainer extends ConsumerWidget {
   }
 }
 
-/// Date format: dd-MM-yyyy
+// ⭐ Date format: dd-MM-yyyy
 String formatDate(DateTime date) {
   return DateFormat('dd-MM-yyyy').format(date);
 }

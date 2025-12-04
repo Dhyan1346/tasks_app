@@ -1,46 +1,70 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:todo_tasks/core/widgets/AsyncDataWidget.dart';
 import 'package:todo_tasks/core/widgets/Customtext.dart';
 import 'package:todo_tasks/core/widgets/custom_textfield.dart';
 import 'package:todo_tasks/core/widgets/customappbar.dart';
 import 'package:todo_tasks/core/widgets/custombutton.dart';
 import 'package:todo_tasks/features/add/add_controller/add_controller.dart';
-
+import 'package:todo_tasks/model/usermodel.dart';
+final formKey = GlobalKey<FormState>();
 class AddScreen extends ConsumerWidget {
-  AddScreen({super.key});
+  const AddScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final titleController = ref.watch(titleControllerProvider);
-    final titleDesController = ref.watch(titleDesControllerProvider);
+
+
+    final title=ref.watch(titleEditingControllerProvider);
+    final titledes=ref.watch(titleDescriptionEditingControllerProvider);
+
 
     return Scaffold(
       appBar: CustomAppBar(title: "Add Screen"),
 
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 15,
-          children: [
-            CustomText(text: "Task Title"),
-            CustomFormField(
-              controller: titleController,
-              hintText: "Enter Task Title",
-              prefixIcon: Icon(FontAwesomeIcons.alignLeft),
-            ),
+        child: Form(
+          key: formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 15,
+            children: [
+              CustomText(text: "Task Title"),
+              CustomFormField(
+                controller: title,
+                hintText: "Enter Task Title",
+                validator: (val){
+                  if (val == null || val.trim().isEmpty) {
+                    return "Title is required";
+                  }
+                  return null;
 
-            CustomText(text: "Task Description"),
-            CustomFormField(
-              controller: titleDesController,
-              hintText: 'Enter Task Description',
-              prefixIcon: Icon(FontAwesomeIcons.alignLeft),
-            ),
 
-            PriorityScreen(),
-            AddButton(),
-          ],
+                },
+                prefixIcon: Icon(FontAwesomeIcons.alignLeft),
+              ),
+
+              CustomText(text: "Task Description"),
+              CustomFormField(
+                validator: (val){
+                  if (val == null || val.trim().isEmpty) {
+                    return "Description is required";
+                  }
+                  return null;
+
+
+                },
+                controller: titledes,
+                hintText: 'Enter Task Description',
+                prefixIcon: Icon(FontAwesomeIcons.alignLeft),
+              ),
+
+              PriorityScreen(),
+              AddButton(),
+            ],
+          ),
         ),
       ),
     );
@@ -48,13 +72,15 @@ class AddScreen extends ConsumerWidget {
 }
 
 class PriorityScreen extends ConsumerWidget {
-  PriorityScreen({super.key});
 
-  List<String> proritynames = ['High', 'Medium', 'Low'];
+  const PriorityScreen({super.key});
+
+
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final itemdata = ref.watch(selectitemindex);
+    final priorityList=ref.watch(priorityListProvider);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,7 +94,7 @@ class PriorityScreen extends ConsumerWidget {
             height: 40,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: proritynames.length,
+              itemCount: priorityList.length,
               itemBuilder: (context, index) {
                 final isSelected = itemdata == index;
 
@@ -87,7 +113,7 @@ class PriorityScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: CustomText(
-                      text: proritynames[index],
+                      text: priorityList[index],
                       color: isSelected ? Colors.white : Colors.black,
                     ),
                   ),
@@ -101,29 +127,51 @@ class PriorityScreen extends ConsumerWidget {
   }
 }
 
-class AddButton extends ConsumerWidget {
+class AddButton extends ConsumerWidget  {
   const AddButton({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final data = ref.watch(userdata);
+    final taskState = ref.watch(taskControllerProvider);
+    final priorityMap = {
+      "High": 1,
+      "Medium": 2,
+      "Low": 3,
+    };
 
-    return CustomButton(
-      icon: Icons.add,
-      text: "Add Task",
-      onTap: () {
-        final id = DateTime.now().microsecondsSinceEpoch.toString();
 
-        final titleController = ref.read(titleControllerProvider);
-        final descriptionController = ref.read(titleDesControllerProvider);
+    final title=ref.watch(titleEditingControllerProvider);
+    final titledes=ref.watch(titleDescriptionEditingControllerProvider);
+    final id=DateTime.now().microsecondsSinceEpoch.toString();
+    final index = ref.watch(selectitemindex);
+    final priorityList = ref.watch(priorityListProvider);
+    final selectedPriority = priorityList[index];
 
-        final selectedIndex = ref.read(selectitemindex);
-        final priorityList = ref.read(priorityListProvider);
-        final selectedPriority = priorityList[selectedIndex];
+    return AsyncDataWidget(asyncValue:taskState , builder: (data) {
+      return  CustomButton(
+        icon: Icons.add,
+        text: "Add Task",
+        onTap: () {
+          if (formKey.currentState!.validate()) {
+            // All validators passed
+            ref.read(taskControllerProvider.notifier).addTask(
+              TaskModel(
+                id:id,
+                title:title.text,
+                description:titledes.text,
+                priority:selectedPriority,
+                createdAt:DateTime.now(),
+                priorityValue:priorityMap[selectedPriority]!,
+              ),
+            );
+          }
+        },
 
-        ref
-            .read(userdata.notifier).addUser(id, titleController.text.trim(), descriptionController.text.trim(), selectedPriority,);
-      },
-    );
+      );
+    },);
+
+
+
+
   }
 }

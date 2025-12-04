@@ -14,7 +14,7 @@ class AsyncDataWidget<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return asyncValue.when(
-      loading: () => Center(child: CircularProgressIndicator()),
+      loading: () => Center(child: CircularProgressIndicator(color: Colors.red,)),
       error: (err, stack) => Text('Error: $err'),
       data: builder,
     ); // Use the builder function to display data

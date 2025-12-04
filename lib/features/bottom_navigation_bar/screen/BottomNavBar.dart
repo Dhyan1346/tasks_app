@@ -3,21 +3,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:todo_tasks/features/add/add_screen/add_screen.dart';
 import 'package:todo_tasks/features/bottom_navigation_bar/repositary/BottomNavBar_repositary.dart';
+import 'package:todo_tasks/features/complete/screen/complete_screen.dart';
 import 'package:todo_tasks/features/home/screen/Home_screen.dart';
+import 'package:todo_tasks/features/incomplete/incomplete_screen/incomplete_screen.dart';
 
 class BottomNavBarApp extends ConsumerWidget {
    BottomNavBarApp({super.key});
 
   final List<Widget> screens = [
   HomeScreen(),
-    HomeScreen(),
+
+    InCompleteScreen(),
     AddScreen(),
-    HomeScreen(),
+   CompleteScreen(),
     HomeScreen(),
   ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    print("Build");
     final currentIndex = ref.watch(bottomNavIndexProvider);
 
     return Scaffold(
@@ -26,8 +30,8 @@ class BottomNavBarApp extends ConsumerWidget {
         currentIndex: currentIndex,
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.blue, // background color
-        unselectedItemColor: Colors.black, // color of unselected icons
-        selectedItemColor: Colors.white, // color of selected icon
+        unselectedItemColor: Colors.white, // color of unselected icons
+        selectedItemColor: Colors.black, // color of selected icon
         onTap: (index) {
           ref.read(bottomNavIndexProvider.notifier).state = index;
         },

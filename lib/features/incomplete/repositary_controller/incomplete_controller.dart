@@ -1,12 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
-import 'package:todo_tasks/core/widgets/customtoast.dart';
 
+
+import 'package:flutter/material.dart';
 import 'package:riverpod/legacy.dart';
-import 'package:todo_tasks/features/add/add_repositary/add_repositary.dart';
+import 'package:riverpod/riverpod.dart';
+import 'package:todo_tasks/core/widgets/customtoast.dart';
 import 'package:todo_tasks/model/usermodel.dart';
+
+import '../incomplete_repositary/incomplete_repositary.dart';
 
 final selectitemindex = StateProvider<int>((ref) {
   return 0;
@@ -29,28 +29,15 @@ final taskStreamProvider= StreamProvider<List<TaskModel>>((ref) {
 
 },);
 
-final taskinCompleteStreamProvider= StreamProvider<List<TaskModel>>((ref) {
-  return ref.watch(taskRepositoryProvider).getinCompleteTask();
-
-},);
-final taskCompleteStreamProvider= StreamProvider<List<TaskModel>>((ref) {
-  return ref.watch(taskRepositoryProvider).getCompleteTask();
-
-},);
-
-
-
-
-
 final titleEditingControllerProvider =
-    Provider<TextEditingController>((ref) {
-      return TextEditingController();
-    });
+Provider<TextEditingController>((ref) {
+  return TextEditingController();
+});
 
 final titleDescriptionEditingControllerProvider =
-    Provider<TextEditingController>((ref) {
-      return TextEditingController();
-    });
+Provider<TextEditingController>((ref) {
+  return TextEditingController();
+});
 
 final taskRepositoryProvider = Provider((ref) => TaskRepository());
 
@@ -62,7 +49,7 @@ class TaskController extends StateNotifier<AsyncValue<List<TaskModel>>> {
 
   void listentask() {
     repo.getTask().listen(
-      (taskList) {
+          (taskList) {
         state = AsyncValue.data(taskList);
       },
       onError: (e) {
@@ -71,25 +58,21 @@ class TaskController extends StateNotifier<AsyncValue<List<TaskModel>>> {
     );
   }
 
-    Future<void> addTask(TaskModel task) async {
-      try {
-        state = const AsyncValue.loading();
-
-
-
-        await repo.add(task);
-        CustomToast.show("Task added successfully.");
-      } catch (e) {
-        state = AsyncValue.error(e, StackTrace.current);
-        CustomToast.show("Task added Failed.");
-      }
+  Future<void> addTask(TaskModel task) async {
+    try {
+      state = const AsyncValue.loading();
+      await repo.add(task);
+      CustomToast.show("Task added successfully.");
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
+      CustomToast.show("Task added Failed.");
     }
+  }
 
 
   Future<void> removeTask(TaskModel task) async {
     try {
       state = const AsyncValue.loading();
-
       await repo.remove(task);
       CustomToast.show("Task removed successfully.");
     } catch (e) {
@@ -98,21 +81,9 @@ class TaskController extends StateNotifier<AsyncValue<List<TaskModel>>> {
     }
   }
 
-  Future<void> updateTask(TaskModel task) async {
-    try {
-      await repo.updateTask(task);
-      CustomToast.show("Task updated successfully.");
-    } catch (e) {
-      CustomToast.show("Task update failed.");
-    }
-  }
-
-
-
 
   Future<void> toggleDone(TaskModel task) async {
     try {
-
       await repo.toggleDone(task);
     } catch (e) {
       CustomToast.show("Failed to update");

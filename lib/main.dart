@@ -3,6 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:todo_tasks/core/router/routers.dart';
 import 'package:todo_tasks/features/auth/screen/auth_gate.dart';
+import 'package:todo_tasks/features/auth/screen/login_screen.dart';
+import 'package:todo_tasks/firebase_options.dart';
 
 
 void main() async {
@@ -10,7 +12,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // Run app with Riverpod
   runApp(

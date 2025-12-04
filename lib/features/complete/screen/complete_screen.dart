@@ -9,13 +9,13 @@ import 'package:todo_tasks/core/widgets/showCustomDialog.dart';
 import 'package:todo_tasks/features/home/controller/home_controller.dart';
 import 'package:todo_tasks/features/add/add_controller/add_controller.dart';
 
-class HomeScreen extends ConsumerWidget {
-  const HomeScreen({super.key});
+class CompleteScreen extends ConsumerWidget {
+  const CompleteScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: const CustomAppBar(title: "My Tasks"),
+      appBar: const CustomAppBar(title: "Complete Tasks"),
       body: Column(
         children: const [
           ShowContainer(),
@@ -30,7 +30,7 @@ class ShowContainer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final taskData = ref.watch(taskStreamProvider);
+    final taskData = ref.watch(taskCompleteStreamProvider);
 
     return Expanded(
       child: AsyncDataWidget(
@@ -38,7 +38,7 @@ class ShowContainer extends ConsumerWidget {
         builder: (data) {
           if (data.isEmpty) {
             return const Center(
-              child: Text("No tasks found"),
+              child: Text("No completed tasks"),
             );
           }
 
@@ -61,7 +61,6 @@ class ShowContainer extends ConsumerWidget {
                   padding: const EdgeInsets.all(8.0),
                   child: GestureDetector(
                     onTap: () {},
-
                     child: Container(
                       padding: const EdgeInsets.all(12.0),
                       decoration: BoxDecoration(
@@ -71,7 +70,7 @@ class ShowContainer extends ConsumerWidget {
 
                       child: Row(
                         children: [
-                          /// LEFT CONTENT
+                          /// LEFT SECTION
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -81,7 +80,6 @@ class ShowContainer extends ConsumerWidget {
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
                               ),
-
                               const SizedBox(height: 4),
 
                               CustomText(
@@ -89,15 +87,16 @@ class ShowContainer extends ConsumerWidget {
                                 color: Colors.white,
                                 fontSize: 16,
                               ),
-
                               const SizedBox(height: 8),
 
                               Row(
                                 children: [
-                                  /// Priority Chip
+                                  /// Priority Tag
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.red,
                                       borderRadius: BorderRadius.circular(5),
@@ -111,10 +110,12 @@ class ShowContainer extends ConsumerWidget {
 
                                   const SizedBox(width: 16),
 
-                                  /// Date Chip
+                                  /// Date Tag
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.green,
                                       borderRadius: BorderRadius.circular(5),
@@ -143,13 +144,11 @@ class ShowContainer extends ConsumerWidget {
 
                           const Spacer(),
 
-                          /// RIGHT SIDE ICONS
+                          /// RIGHT SECTION (ICONS)
                           Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             spacing: 20,
-
                             children: [
-                              /// COMPLETE TOGGLE
+                              /// Toggle Complete/Incomplete
                               GestureDetector(
                                 onTap: () {
                                   ref
@@ -160,18 +159,15 @@ class ShowContainer extends ConsumerWidget {
                                   isSelected
                                       ? Icons.check_box
                                       : Icons.check_box_outline_blank,
-                                  color:
-                                  isSelected ? Colors.green : Colors.grey,
+                                  color: isSelected ? Colors.green : Colors.grey,
                                 ),
                               ),
 
-
-
-                              /// DELETE BUTTON
+                              /// Delete
                               GestureDetector(
                                 onTap: () {
                                   ref
-                                      .read(taskControllerProvider.notifier)
+                                      .watch(taskControllerProvider.notifier)
                                       .removeTask(task);
                                 },
                                 child: const Icon(
@@ -180,12 +176,17 @@ class ShowContainer extends ConsumerWidget {
                                   size: 20,
                                 ),
                               ),
+
+                              /// Edit
                               GestureDetector(
                                 onTap: () {
-                                  showIncompleteDialog(context, ref,task);
-
+                                  showIncompleteDialog(context, ref, task);
                                 },
-                                child: const Icon(FontAwesomeIcons.penToSquare, color: Colors.grey, size: 20),
+                                child: const Icon(
+                                  FontAwesomeIcons.penToSquare,
+                                  color: Colors.grey,
+                                  size: 20,
+                                ),
                               ),
                             ],
                           ),
@@ -203,7 +204,7 @@ class ShowContainer extends ConsumerWidget {
   }
 }
 
-/// Date format: dd-MM-yyyy
+/// ⭐ Date format helper
 String formatDate(DateTime date) {
   return DateFormat('dd-MM-yyyy').format(date);
 }
